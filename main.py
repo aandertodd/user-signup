@@ -1,50 +1,26 @@
-from flask import Flask, request
+from flask import Flask, request, redirect
 import cgi
 import os
 import jinja2
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader (template_dir))
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader (template_dir), autoescape=True)
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
-
-info_form = """<style>
-            .error {{ color: red;}}
-            </style>
-             <form action="/" >
-             <h1>Sign up</h1>
-                <label>Username</label>
-                    <input name="username" type="text" value='{username}' />
-                    <p class="error">{username_error}</p>
-                <label>Password</label>
-                    <input type="text" name="password" value='{password}' />
-                    <p class="error">{password_error}</p>
-                <label>Verify Password</label>
-                    <input type="text" name="verify" value='{verify}' />
-                    <p class="error">{verify_error}</p>
-                <label for="email">E-mail (Optional)</label>
-                    <input type="text" name="email" value='{email}' />
-                    <p class="error">{email_error}</p>
-                <input type="submit"/>
-             </form>
-          </html>
-             """
-
-
-
 
 
 @app.route('/')
 def display_info_form():
-    return info_form.format(username='', username_error='', password='', password_error='',
-        verify='', verify_error='', email='', email_error='')
-
+    template = jinja_env.get_template('base.html')
+    return template.render()
 
 
 
 @app.route('/', methods=['POST'])
 def validate_info_form():
 
+    template = jinja_env.get_template('base.html')
     username = request.form['username']
     password = request.form['password']
     verify = request.form['verify']
@@ -55,36 +31,37 @@ def validate_info_form():
     verify_error = ''
     email_error = ''
 
-    if username < 3:
+
+    #Username verifier
+    if ' ' in username or (len(username)) < 3 or (len(username)) > 20:
         username_error = 'Not a valid username'
         username = ''
+
+    if ' ' in password or (len(password)) < 3 or (len(password)) > 20:
+        password_error = 'Not a valid password'
+        password = ''
+
+    if verify != password:
+        verify_error = 'Passwords do not match'
+        verify = ''
+
+    if email != '':
+        if '@' not in email or '.' not in email:
+            email_error = 'Not a valid e-mail'
+            email = ''
+    #success message
+    if not username_error and not password_error and not verify_error and not email_error:
+        welcome_user = username
+        return redirect('/welcome?username={0}'.format(username))
     else:
-        if username.strip() == ' ':
-            username_error = "Not a valid username"
-            username_error = ''
+        return template.render(username_error=username_error, password_error=password_error,
+        verify_error=verify_error, email_error=email_error,
+        username=username, password=password, verify=verify, email=email)
 
-
-    if not username_error:
-        return "success"
-    else:
-        return info_form.format(username_error=username_error)
-
-
-"""
-@app.route('/valid-info', methods=['POST'])
+@app.route('/welcome')
 def valid_info():
+    username = request.args.get('username')
+    template = jinja_env.get_template('welcome.html')
+    return template.render(username=username)
 
-
-
-    if password < 3 or password > 20:
-        error
-    if password != verify:
-        error
-    if username or password or verify or email == "":
-        error
-    if username or password or verify or email == " ":
-        error
-    if email and email < '@.' or email == " ":
-        error
-"""
 app.run()

@@ -1,12 +1,25 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title></title>
-    </head>
-    <body>
+{% extends "default.html" %}
+    {% block head %}
+        <style>
+        .error { color: red; }
+        </style>
+    {% endblock %}
     {% block content %}
+     <h1>Sign up</h1>
+        <form action='/' method='post'>
+            <label>Username</label>
+                <input name="username" type="text" value='{{username}}' />
+                <p class="error">{{username_error}}</p>
+            <label>Password</label>
+                <input type="text" name="password" value='{{password}}' />
+                <p class="error">{{password_error}}</p>
+            <label>Verify Password</label>
+                <input type="text" name="verify" value='{{verify}}' />
+                <p class="error">{{verify_error}}</p>
+            <label for="email">E-mail (Optional)</label>
+                <input type="text" name="email" value='{{email}}' />
+                <p class="error">{{email_error}}</p>
+            <input type="submit"/>
 
-    {% endcontent%}
-
-    </body>
-<html>
+        </form>
+    {% endblock %}
